@@ -1,0 +1,236 @@
+1. Sign-In Component
+sign-in.component.ts
+typescript
+Copy
+Edit
+import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, Validators, AbstractControl, ValidatorFn } from '@angular/forms';
+
+@Component({
+  selector: 'app-sign-in',
+  templateUrl: './sign-in.component.html',
+  styleUrls: ['./sign-in.component.css']
+})
+export class SignInComponent implements OnInit {
+  signInForm: FormGroup;
+  submitted = false;
+
+  constructor(private fb: FormBuilder) {}
+
+  ngOnInit() {
+    this.signInForm = this.fb.group({
+      email: ['', [
+        Validators.required,
+        Validators.email,
+        this.allowedEmailDomainsValidator(['gmail.com', 'hotmail.com', 'yahoo.com', 'rediffmail.com'])
+      ]],
+      password: ['', [
+        Validators.required,
+        Validators.minLength(6),
+        Validators.pattern('^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{6,}$')
+      ]]
+    });
+  }
+
+  allowedEmailDomainsValidator(allowedDomains: string[]): ValidatorFn {
+    return (control: AbstractControl): { [key: string]: any } | null => {
+      if (!control.value) return null;
+      const emailParts = control.value.split('@');
+      if (emailParts.length !== 2) return { invalidEmail: true };
+      const domain = emailParts[1].toLowerCase();
+      if (!allowedDomains.includes(domain)) {
+        return { invalidDomain: true };
+      }
+      return null;
+    };
+  }
+
+  onSubmit() {
+    this.submitted = true;
+    if (this.signInForm.valid) {
+      console.log('Sign In Successful', this.signInForm.value);
+    } else {
+      console.log('Form Invalid');
+    }
+  }
+
+  get f() {
+    return this.signInForm.controls;
+  }
+}
+sign-in.component.html
+html
+Copy
+Edit
+<form [formGroup]="signInForm" (ngSubmit)="onSubmit()">
+  <div>
+    <label>Email</label>
+    <input type="email" formControlName="email">
+    <div *ngIf="submitted && f.email.errors">
+      <small *ngIf="f.email.errors.required">Email is required.</small>
+      <small *ngIf="f.email.errors.email">Enter a valid email address.</small>
+      <small *ngIf="f.email.errors.invalidDomain">Only Gmail, Yahoo, Hotmail, Rediffmail domains allowed.</small>
+    </div>
+  </div>
+
+  <div>
+    <label>Password</label>
+    <input type="password" formControlName="password">
+    <div *ngIf="submitted && f.password.errors">
+      <small *ngIf="f.password.errors.required">Password is required.</small>
+      <small *ngIf="f.password.errors.minlength">Password must be at least 6 characters.</small>
+      <small *ngIf="f.password.errors.pattern">Password must include uppercase, lowercase, number, and special character.</small>
+    </div>
+  </div>
+
+  <button type="submit">Sign In</button>
+</form>
+2. Sign-Up Component
+sign-up.component.ts
+typescript
+Copy
+Edit
+import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, Validators, AbstractControl, ValidatorFn } from '@angular/forms';
+
+@Component({
+  selector: 'app-sign-up',
+  templateUrl: './sign-up.component.html',
+  styleUrls: ['./sign-up.component.css']
+})
+export class SignUpComponent implements OnInit {
+  signUpForm: FormGroup;
+  submitted = false;
+
+  constructor(private fb: FormBuilder) {}
+
+  ngOnInit() {
+    this.signUpForm = this.fb.group({
+      email: ['', [
+        Validators.required,
+        Validators.email,
+        this.allowedEmailDomainsValidator(['gmail.com', 'hotmail.com', 'yahoo.com', 'rediffmail.com'])
+      ]],
+      password: ['', [
+        Validators.required,
+        Validators.minLength(6),
+        Validators.pattern('^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{6,}$')
+      ]],
+      confirmPassword: ['', Validators.required]
+    }, { validators: this.passwordMatchValidator });
+  }
+
+  allowedEmailDomainsValidator(allowedDomains: string[]): ValidatorFn {
+    return (control: AbstractControl): { [key: string]: any } | null => {
+      if (!control.value) return null;
+      const emailParts = control.value.split('@');
+      if (emailParts.length !== 2) return { invalidEmail: true };
+      const domain = emailParts[1].toLowerCase();
+      if (!allowedDomains.includes(domain)) {
+        return { invalidDomain: true };
+      }
+      return null;
+    };
+  }
+
+  passwordMatchValidator(formGroup: AbstractControl): { [key: string]: boolean } | null {
+    const password = formGroup.get('password')?.value;
+    const confirmPassword = formGroup.get('confirmPassword')?.value;
+    if (password !== confirmPassword) {
+      return { mismatch: true };
+    }
+    return null;
+  }
+
+  onSubmit() {
+    this.submitted = true;
+    if (this.signUpForm.valid) {
+      console.log('Sign Up Successful', this.signUpForm.value);
+    } else {
+      console.log('Form Invalid');
+    }
+  }
+
+  get f() {
+    return this.signUpForm.controls;
+  }
+}
+sign-up.component.html
+html
+Copy
+Edit
+<form [formGroup]="signUpForm" (ngSubmit)="onSubmit()">
+  <div>
+    <label>Email</label>
+    <input type="email" formControlName="email">
+    <div *ngIf="submitted && f.email.errors">
+      <small *ngIf="f.email.errors.required">Email is required.</small>
+      <small *ngIf="f.email.errors.email">Enter a valid email address.</small>
+      <small *ngIf="f.email.errors.invalidDomain">Only Gmail, Yahoo, Hotmail, Rediffmail domains allowed.</small>
+    </div>
+  </div>
+
+  <div>
+    <label>Password</label>
+    <input type="password" formControlName="password">
+    <div *ngIf="submitted && f.password.errors">
+      <small *ngIf="f.password.errors.required">Password is required.</small>
+      <small *ngIf="f.password.errors.minlength">Password must be at least 6 characters.</small>
+      <small *ngIf="f.password.errors.pattern">Password must include uppercase, lowercase, number, and special character.</small>
+    </div>
+  </div>
+
+  <div>
+    <label>Confirm Password</label>
+    <input type="password" formControlName="confirmPassword">
+    <div *ngIf="submitted && (f.confirmPassword.errors || signUpForm.errors?.mismatch)">
+      <small *ngIf="f.confirmPassword.errors?.required">Confirm Password is required.</small>
+      <small *ngIf="signUpForm.errors?.mismatch">Passwords do not match.</small>
+    </div>
+  </div>
+
+  <button type="submit">Sign Up</button>
+</form>
+3. Common CSS (sign-in.component.css / sign-up.component.css)
+css
+Copy
+Edit
+form {
+  max-width: 400px;
+  margin: auto;
+}
+
+div {
+  margin-bottom: 15px;
+}
+
+input {
+  width: 100%;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+small {
+  color: red;
+}
+
+button {
+  width: 100%;
+  padding: 10px;
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+✅ Now You Have:
+Reactive Forms (no template-driven)
+
+Password strength enforced (uppercase, lowercase, number, special)
+
+Email domains restricted (gmail, yahoo, etc.)
+
+Confirm Password matching
+
+Error messages shown nicely
+
+Clean code separation
